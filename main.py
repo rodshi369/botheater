@@ -97,14 +97,14 @@ def verifypass(message, schet):
 def makeCSV(data):
     try:
         with open("temp.csv", mode="w", encoding="cp1251") as w_file:
-            names = ["id", "dt", "tempatm", "temptributary", "tempreturn", "condition"]
+            names = ["id", "dt", "tempatm", "temptributary", "tempreturn", "condition", "alarm"]
             file_writer = csv.DictWriter(w_file, delimiter=";", lineterminator="\r", fieldnames=names)
             file_writer.writeheader()
             for rec in data:
                 file_writer.writerow(
                     {"id": rec[0], "dt": rec[1], "tempatm": '"' + str(rec[2]) + '"',
                      "temptributary": '"' + str(rec[3]) + '"', "tempreturn": '"' + str(rec[4]) + '"',
-                     "condition": bool(rec[5])})
+                     "condition": bool(rec[5]) , "alarm": rec[6]})
 
             return w_file
     except Exception as err:
@@ -467,30 +467,16 @@ def get_text_messages(message):
         _vkl(message)
     elif message.text == 'Изменение скорости вентилятора':
         pass
-        # F1 = connect_TCP.read_unit(1, cst.READ_COILS, 1536, 1)
-        # if F1 == None:
-        #     bot.send_message(message.from_user.id, "Нет подключения.")
-        # else:
-        #     if F1[0] == 1:
-        #         connect_TCP.write_unit(1, cst.WRITE_MULTIPLE_COILS, 1536, 0)
-        #     elif F1[0] == 0:
-        #         connect_TCP.write_unit(1, cst.WRITE_MULTIPLE_COILS, 1536, 1)
-        #     F1 = connect_TCP.read_unit(1, cst.READ_COILS, 1536, 1)
-        #     bot.send_message(message.from_user.id, "Установленно значение: " + str(F1[0]))
     elif message.text == 'Уставки':
         _setpoints(message)
-    #     msg = bot.send_message(message.from_user.id, "Введите значение AF1 (menu->next пропустить):")
-    #     bot.register_next_step_handler(msg, setdeviceAF, 1)
-    # elif message.text == "Блок схема":
-    #     kart = open("PR-18DC-dai-r-n.PNG", 'rb')
-    #     bot.send_photo(message.from_user.id, kart)
+
     elif message.text == "Вкл/выкл":
         pass
     elif message.text == "Лог":
         conn = sqlite3.connect("log.db")
         cur = conn.cursor()
 
-        query = """SELECT id, dt, tempatm, temptributary, tempreturn, condition FROM log order by dt desc LIMIT 1440"""
+        query = """SELECT id, dt, tempatm, temptributary, tempreturn, condition, alarm FROM log order by dt desc LIMIT 2600"""
         # param = {"userid": message.from_user.id, "first_name": message.from_user.first_name}
         rez = cur.execute(query)
         one_result = rez.fetchall()

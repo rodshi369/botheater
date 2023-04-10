@@ -25,7 +25,7 @@ def write_unit(unit, command, adrr, value):
     except Exception as err:
         return False
 
-ip = const.ip
-port = const.port
+ip = const.IP
+port = const.PORT
 
 get_connection(1,ip, port)

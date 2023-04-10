@@ -1,12 +1,11 @@
 import sqlite3
 
-__connection = None
+# __connection = None
 
 
 def get_connection(namebase: str):
-    global __connection
-    if __connection is None:
-        __connection = sqlite3.connect(namebase)
+    # if __connection is None:
+    __connection = sqlite3.connect(namebase)
     return __connection
 
 
@@ -136,8 +135,8 @@ def get_record_log(query, param):
 def shrink_log():
     conn = sqlite3.connect("log.db")
     cur = conn.cursor()
-    rangeMax = 500
-    rangeNorma =400
+    rangeMax = 86400
+    rangeNorma = 60480
     try:
         cur.execute("DELETE FROM log WHERE id < " + str(rangeMax-rangeNorma))
         conn.commit()
@@ -152,8 +151,8 @@ def shrink_log():
 def shrink_passing():
     conn = sqlite3.connect("users.db")
     cur = conn.cursor()
-    rangeMax = 10000
-    rangeNorma = 8000
+    rangeMax = 3000
+    rangeNorma = 1000
     try:
         cur.execute("DELETE FROM passing WHERE id < " + str(rangeMax-rangeNorma))
         conn.commit()

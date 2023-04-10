@@ -48,8 +48,15 @@ def logging(q):
         rez = db.get_record_log("SELECT COUNT(id) FROM log ", None)
         if rez is not None:
             one_result = rez.fetchall()
-            if one_result[0][0] >= 100000:  # 60480 примерно 10 дней
+            if one_result[0][0] >= 86400:  # 86400 примерно 10 дней
                 db.shrink_log()
+        rez = db.get_record_log("SELECT COUNT(id) FROM passing ", None)
+        if rez is not None:
+            one_result = rez.fetchall()
+            if one_result[0][0] >= 3000:  # 60480 примерно 10 дней
+                db.shrink_passing()
+
+        ###############################################
         time.sleep(10)
 
 

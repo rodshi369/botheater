@@ -1,5 +1,5 @@
 import os
-import datetime
+import datetime, time
 import sqlite3
 import csv
 import db, connect_TCP, log_unit, const
@@ -9,7 +9,6 @@ import modbus_tk.defines as cst
 
 import telebot
 from telebot import types
-
 
 bot = telebot.TeleBot(const.TOKEN)
 
@@ -104,7 +103,7 @@ def makeCSV(data):
                 file_writer.writerow(
                     {"id": rec[0], "dt": rec[1], "tempatm": '"' + str(rec[2]) + '"',
                      "temptributary": '"' + str(rec[3]) + '"', "tempreturn": '"' + str(rec[4]) + '"',
-                     "condition": bool(rec[5]) , "alarm": rec[6]})
+                     "condition": bool(rec[5]), "alarm": rec[6]})
 
             return w_file
     except Exception as err:
@@ -212,6 +211,10 @@ def setdevice(message, reg, decimal):
         if connect_TCP.write_unit(1, cst.WRITE_MULTIPLE_REGISTERS, reg,
                                   int(float(message.text.replace(",", ".")) * 10 if decimal is False else int(
                                       message.text))) is True:
+            if connect_TCP.write_unit(1, cst.WRITE_MULTIPLE_COILS, 1540, 1) is True:
+                # time.sleep(0.1)
+                connect_TCP.write_unit(1, cst.WRITE_MULTIPLE_COILS, 1540, 0)
+
             bot.send_message(message.from_user.id, "Установлено.")
             # bot.clear_step_handler_by_chat_id(chat_id=message.from_user.id)
         return True
@@ -260,6 +263,10 @@ def _setpoints(message):
     setpoints = connect_TCP.read_unit(1, cst.READ_HOLDING_REGISTERS, 3072, 15)
     if setpoints is None:
         bot.send_message(message.from_user.id, "Не удалось прочитать уставки.")
+    # Прочитаем из pr22 в pr12 если уставки нулевые
+    elif setpoints[0] + setpoints[1] + setpoints[2] + setpoints[3] + setpoints[4] + setpoints[5] + setpoints[6] + setpoints[7] + setpoints[8] + setpoints[9] + setpoints[10] + setpoints[11] + setpoints[12] + setpoints[13] + setpoints[14] == 0:
+        if connect_TCP.read_unit(1, cst.WRITE_MULTIPLE_COILS, 1539, 1) is True:
+            connect_TCP.read_unit(1, cst.WRITE_MULTIPLE_COILS, 1539, 0)
     else:
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton(text='AF1-Норм.темп.притока=' + str(setpoints[0] / 10), callback_data=1))
@@ -410,23 +417,25 @@ def get_text_messages(message):
     #    Получим из потока данные
     n = qe.get()
     #   Проверим нааврийные уставки
-    if n[0][1] <= n[2][1]:
-        for bola in isauthorized:
-            # bot.send_message(isauthorized['1494201864']['userid'], 'Аварийная температура приточной вентиляции' +
-            #                  '\n Установленно=' + str(n[2][1]) +
-            #                  '\n Текущее значение=' + str(n[0][1]) +
-            #                  '\n Зарегестрировано'+ str(n[3]))
+    if n[4] is True:
+        if n[0][1] <= n[2][1]:
+            bot.send_message(isauthorized['1494201864']['userid'], 'Аварийная температура приточной вентиляции' +
+                             '\n Установленно=' + str(n[2][1]) +
+                             '\n Текущее значение=' + str(n[0][1]) +
+                             '\n Зарегестрировано' + str(n[3]))
+            # for bola in isauthorized:
 
-            bot.send_message(bola, 'Аварийная температура приточной вентиляции' +
-                             '\n Установленно = ' + str(n[2][1] / 10) +
-                             '\n Текущее значение = ' + str(n[0][1] / 10) +
-                             '\n Зарегестрировано = ' + str(n[3]))
-    elif n[0][2] <= n[2][2]:
-        for bola in isauthorized:
-            bot.send_message(bola, 'Аварийная температура обратки' +
-                             '\n Установленно = ' + str(n[2][2] / 10) +
-                             '\n Текущее значение = ' + str(n[0][2] / 10) +
-                             '\n Зарегестрировано = ' + str(n[3]))
+            # bot.send_message(bola, 'Аварийная температура приточной вентиляции' +
+            #                  '\n Установленно = ' + str(n[2][1] / 10) +
+            #                  '\n Текущее значение = ' + str(n[0][1] / 10) +
+            #                  '\n Зарегестрировано = ' + str(n[3]))
+            # pass
+        elif n[0][2] <= n[2][2]:
+            for bola in isauthorized:
+                bot.send_message(bola, 'Аварийная температура обратки' +
+                                 '\n Установленно = ' + str(n[2][2] / 10) +
+                                 '\n Текущее значение = ' + str(n[0][2] / 10) +
+                                 '\n Зарегестрировано = ' + str(n[3]))
 
     #####################################
 

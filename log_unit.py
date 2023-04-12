@@ -27,17 +27,18 @@ def logging(q):
         else:
             setpoints = paket3
         dt = datetime.datetime.now()
+        sostoyanie = None if paket1==None and paket2==None and paket3==None else True
         # Отправим данные в основной поток
-        q.put_nowait((temp, condition, setpoints, dt))
+        q.put_nowait((temp, condition, setpoints, dt, sostoyanie))
         ################################
 
         try:
             if temp[1] <= setpoints[1]:
-                param = [dt, temp[0] / 10, temp[1] / 10, temp[2] / 10, condition[0], "Низкая темп.притока"]
+                param = (dt, float(temp[0] / 10), float(temp[1] / 10), float(temp[2] / 10), condition[0], "Низкая темп.притока")
             elif temp[2] <= setpoints[2]:
-                param = [dt, temp[0] / 10, temp[1] / 10, temp[2] / 10, condition[0], "Низкая темп.обратки"]
+                param = [dt, float(temp[0] / 10), float(temp[1] / 10), float(temp[2] / 10), condition[0], "Низкая темп.обратки"]
             else:
-                param = [dt, temp[0] / 10, temp[1] / 10, temp[2] / 10, condition[0], " "]
+                param = [dt, float(temp[0] / 10), float(temp[1] / 10), float(temp[2] / 10), condition[0], " "]
 
             db.add_record_log(param)
         except Exception as err:

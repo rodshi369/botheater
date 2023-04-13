@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # import modbus_tk
 import modbus_tk.defines as cst
 # import modbus_tk.modbus_tcp as modbus_tcp

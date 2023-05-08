@@ -455,7 +455,10 @@ def get_text_messages(message):
     elif message.text == 'Текущее состояние объекта':
         try:
             paket = connect_TCP.read_unit(1, cst.READ_HOLDING_REGISTERS, 3137, 3)
-            tempatm = paket[0]
+            if paket[0] == None:
+                tempatm = '0'
+            else:
+                tempatm = str((65536 - paket[0]) * (-1) if paket[0] > 65000 else paket[0]/10)
             temptributary = paket[1]
             tempreturn = paket[2]
             # tempatm = connect_TCP.read_unit(1, cst.HOLDING_REGISTERS, 3137, 1)
